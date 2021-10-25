@@ -1,9 +1,9 @@
 version: "3.9"
-
 services:
     database:
         image: postgres
-        volumes: "./tmp/db:/var/lib/postgres/data"
+        volumes: 
+            - "./tmp/db:/var/lib/postgres/data"
         ports:
             - "5432:5432"
         environment:
@@ -15,12 +15,12 @@ services:
     backend:
         build:
             context: ./backend
-            dockerfile: ./docker/backend/Dockerfile
+            dockerfile: /Users/danila/Desktop/matcha/docker/backend/Dockerfile
         command: sh -c "sleep 10"
-        volumes:
-            - "./backend:/code"
+        # volumes:
+        #     - "./backend:/code"
         ports:
-            - "8001:8001"
+            - "5000:5000"
         depends_on: 
             - database
         networks: 
