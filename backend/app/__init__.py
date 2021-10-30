@@ -1,34 +1,36 @@
-from flask import Flask
-from config import Config
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
 from flask_praetorian import Praetorian
+from config import Config
 
-# Initialize application
-app = Flask(__name__)
-app.config.from_object(Config)
-app.debug = True
+#init Guard
+guard = Praetorian()
 
-# Initialize cors
-cors = CORS(app, resources={r"/*": {"origins": "*"}}, support_credentials=True)
+# init SQLAlchemy
+db = SQLAlchemy()
 
-# Initialize guard
-guard = Praetorian(app)
+def create_app(test_config=None):
+    app = Flask(__name__, instance_relative_config=True)
 
-# Initialize db
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+    # if test_config == None:
+    #     app.config.mapping(
+    #         SECRET_KEY='dev'
+    #     )
 
+    app.config.from_object(Config)
+    app.debug = True
 
-from app import routes, models
+    from . import models, db
 
-with app.app_context():
-    db.create_all()
-    if db.session.query(models.User).filter_by(username='stray228').count() < 1:
-        db.session.add(models.User(
-          username='stray228',
-          password=guard.hash_password('stray228'),
-          roles=2
-            ))
-    db.session.commit()
+    db.init_app(app)
+    guard.init_app(app, models.User)
+
+    # blueprint for auth routes in our app
+    from .auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint)
+
+    # blueprint for non-auth parts of app
+    from .routes import routes as routes_blueprint
+    app.register_blueprint(routes_blueprint)
+
+    return app

@@ -1,20 +1,19 @@
-from enum import unique
-from . import db
+from app import db
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String, unique=True, nullable=True, index=True)
-    username = db.Column(db.String, unique=True, nullable=True, index=True)
-    password = db.Column(db.String, nullable=True)
-    roles = db.Column(db.Text, default='user')
-    is_active = db.Column(db.Boolean, default=False)
+    username = db.Column(db.String(60), index=True, unique=True)
+    password = db.Column(db.String(128))
+    email = db.Column(db.String(120), index=True, unique=True)
+    roles = db.Column(db.Integer, default=0)
+    is_online = db.Column(db.Boolean, default=True, server_default='true')
 
     @property
     def rolenames(self):
         try:
-            return self.roles.split(',')
+            return self.roles
         except Exception:
-            return ["Have no role"]
+            return "Have no role"
 
     @classmethod
     def lookup(cls, username):
@@ -29,10 +28,8 @@ class User(db.Model):
         return self.id
 
     def is_valid(self):
-        return self.is_active
+        return self.is_online
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
-    
-    

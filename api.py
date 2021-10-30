@@ -3,22 +3,37 @@ import flask
 import flask_sqlalchemy
 import flask_praetorian
 import flask_cors
+# import flask_mail
 from flask_cors import cross_origin
 from flask import json, request
 
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
 cors = flask_cors.CORS()
-
+# mail = flask_mail.Mail()
 
 # A generic user model that might be used by an app powered by flask-praetorian
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(60), index=True, unique=True)
-    password = db.Column(db.String(128))
-    email = db.Column(db.String(120), index=True, unique=True)
+    username = db.Column(db.String, unique=True, index=True)
+    password = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, unique=True, index=True)
     roles = db.Column(db.Text)
     is_online = db.Column(db.Boolean, default=True, server_default='true')
+    # registred_on = db.Column(db.DateTime, nullable=False)
+    # confirmed = db.Column(db.Boolean, default=False, nullable=False)
+    # confirmed_on = db.Column(db.DateTime, nullable=False)
+
+    # def __init__(self, username, email, password, confirmed,
+    #             paid=False, admin=False, confirmed_on=None):
+    #     self.username = username
+    #     self.email = email
+    #     self.password = password
+    #     self.confirmed = confirmed
+    #     self.admin = admin
+    #     self.confirmed_on = confirmed_on
+    #     self.registred_on = registred_on
+
 
     @property
     def rolenames(self):
@@ -62,6 +77,10 @@ db.init_app(app)
 # Initializes CORS so that the api_tool can talk to the example app
 cors.init_app(app)
 
+# Initializes Mail instance
+# mail.init_app(app)
+
+
 # Add users for the example
 with app.app_context():
     db.create_all()
@@ -104,6 +123,17 @@ def login():
     user = guard.authenticate(username, password)
     ret = {'access_token': guard.encode_jwt_token(user)}
     return ret, 200
+
+
+@app.route('/signup', methods=['POST', 'GET'])
+@flask_praetorian.auth_required
+@cross_origin(supports_credentials=True)
+def signup():
+    req = flask.request.get_json(force=True)
+    username = req.get('username', None)
+    password = req.get('password', None)
+    email = req.get('email', None)
+    
 
 
 @app.route('/refresh', methods=['POST', 'GET'])
