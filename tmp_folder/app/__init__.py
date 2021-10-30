@@ -11,6 +11,7 @@ app.config.from_object(Config)
 app.debug = True
 
 # Initialize cors
+from flask_cors import CORS
 cors = CORS(app, resources={r"/*": {"origins": "*"}}, support_credentials=True)
 
 # Initialize guard

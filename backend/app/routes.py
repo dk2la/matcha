@@ -1,14 +1,18 @@
 from flask import Blueprint
-from . import db
+from flask_cors import cross_origin
+from flask_jwt_extended import jwt_required
+from . import db, models
 
 routes = Blueprint('routes', __name__)
 
 @routes.route('/')
 @routes.route('/index')
+@cross_origin(supports_credentials=True)
 def index():
-    return 'Index'
+    return {'rabotay': 'chert'}
 
 @routes.route('/profile')
+@jwt_required()
+@cross_origin(supports_credentials=True)
 def profile():
-    return 'Profile'
-
+    return {'pishi code blyat': 'chert blyat'}
