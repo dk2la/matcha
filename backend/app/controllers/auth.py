@@ -1,9 +1,15 @@
-from flask import Blueprint, render_template, redirect, url_for, jsonify, flash
-from .models import User
-from flask.globals import request
-from . import db
+# import flask handlers
+from flask import Blueprint
 from flask_cors import cross_origin
 from flask_jwt_extended import create_access_token
+from flask.globals import request
+
+# import db
+from app import db
+
+# import packages
+from app.models import models
+from app.handlers import handler
 
 auth = Blueprint('auth', __name__)
 
@@ -11,18 +17,15 @@ auth = Blueprint('auth', __name__)
 @cross_origin(supports_credentials=True)
 def login():
     req = request.get_json(force=True)
-    # req.get('email', None) if req.get('email', None) else 
-    username = req.get('username', None)
-    password = req.get('password', None)
+    username = handler.get_username(req)
+    password = handler.get_password(req)
 
-    user = User.query.filter_by(username=username).first()
+    user = models.User.query.filter_by(username=username).first()
     auth = user.check_password(password)
     if not auth:
         return {'message': 'have no user'}, 401
 
     access_token = create_access_token(identity=str(user.id))
-    # gen_user_token = guard.authenticate(username, password)
-    # ret = {'access_token': guard.encode_jwt_token(gen_user_token)}
     ret = {'token': access_token}
 
     return ret, 200
@@ -32,16 +35,16 @@ def login():
 def signup():
     req = request.get_json(force=True)
     email = req.get('email', None)
-    username = req.get('username', None)
-    password = req.get('password', None)
+    username = handler.get_username(req)
+    password = handler.get_password(req)
 
-    user = User.query.filter_by(email=email).first()
+    user = handler.search_data('email', email)
 
     if user:
         # flash('Email is already exists')
         return {'message': 'Email is already exists'}
     
-    new_user = User(email=email, username=username, password=password)
+    new_user = models.User(email=email, username=username, password=password)
     new_user.hash_password()
     ret = {
             'username': new_user.username,

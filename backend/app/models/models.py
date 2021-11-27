@@ -1,6 +1,6 @@
 from enum import unique
 from flask_bcrypt import generate_password_hash, check_password_hash
-from . import db
+from app import db
 
 
 class User(db.Model):
